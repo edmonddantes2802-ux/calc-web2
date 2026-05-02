@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import { AuthGate } from '@/components/auth/AuthGate';
 import './globals.css';
 
 const inter = Inter({
@@ -35,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ru" className={inter.variable}>
       <body className="font-sans">
-        {children}
+        <AuthGate>{children}</AuthGate>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

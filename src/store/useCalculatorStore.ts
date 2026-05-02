@@ -11,7 +11,18 @@ import {
   evaluateExpression,
   toggleSign,
 } from '@/core/calculator';
+import { pushHistoryEntry, clearCloudHistory } from '@/lib/historySync';
 import type { HistoryEntry } from '@/types';
+
+interface AuthBridge {
+  getUserId: () => string | null;
+}
+
+const authBridge: AuthBridge = { getUserId: () => null };
+
+export function setAuthBridge(getUserId: () => string | null): void {
+  authBridge.getUserId = getUserId;
+}
 
 const HISTORY_LIMIT = 100;
 
@@ -131,6 +142,11 @@ export const useCalculatorStore = create<CalculatorState>()(
         };
         const trimmed = [entry, ...get().history].slice(0, HISTORY_LIMIT);
         set({ expression: closed, result: evalRes.value, error: null, history: trimmed });
+
+        const userId = authBridge.getUserId();
+        if (userId) {
+          void pushHistoryEntry(userId, entry);
+        }
       },
 
       pressClear: () => {
@@ -154,7 +170,13 @@ export const useCalculatorStore = create<CalculatorState>()(
         set({ expression: value, result: null, error: null, drawerOpen: false });
       },
 
-      clearHistory: () => set({ history: [] }),
+      clearHistory: () => {
+        set({ history: [] });
+        const userId = authBridge.getUserId();
+        if (userId) {
+          void clearCloudHistory(userId);
+        }
+      },
 
       setDrawerOpen: (open) => set({ drawerOpen: open }),
     }),
